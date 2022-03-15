@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * AbstractDAO.java This DAO class provides CRUD database operations for the
@@ -43,7 +44,48 @@ public class UserDao {
 		// try with resources
 		try (Connection connection = ud.getConnection()) {
 			ud.createTable(connection);
-			ud.insertUser(connection, new User(1, "Krishna", "k@p.com", "us"));
+			try (Scanner input = new Scanner(System.in);) {
+				// main menu
+				boolean menu = true;
+				//while loop here
+				while (menu) {
+					System.out.println("What would you like to do: Insert, Update, Delete, Read, ReadAll, Quit?");
+					String option = input.nextLine();
+					switch(option.toLowerCase()) {
+					case "insert":
+						User insertUser = createUser(input);
+						ud.insertUser(connection, insertUser);
+						break;
+					case "update":
+						User updateUser = createUser(input);
+						ud.updateUser(connection, updateUser);
+						break;
+					case "delete":
+						int idDelete = getId(input);
+						ud.deleteUser(connection, idDelete);
+						break;
+					case "read":
+						int idRead = getId(input);
+						User user = ud.selectUser(connection, idRead);
+						System.out.println("ID: " + user.getId() + ", UserName: " + user.getName() + ", email: " + user.getEmail() + ", location: " + user.getCountry());
+						break;
+					case "readall":
+						List<User> list = ud.selectAllUsers(connection);
+						readAll(list);
+						break;
+					case "quit":
+						
+						break;
+					default:
+						System.out.println("Invalid option");
+						break;
+					}
+					menu =	menuOperator(input, menu, "Would you like to do anything else? ");
+				}
+			
+			
+			
+			/* ud.insertUser(connection, new User(1, "Krishna", "k@p.com", "us"));
 			List<User> list = ud.selectAllUsers(connection);
 			System.out.println("user count: " + list.size());
 			System.out.println("user name: " + list.get(0).getName());
@@ -51,9 +93,38 @@ public class UserDao {
 			list = ud.selectAllUsers(connection);
 			System.out.println("user name: " + list.get(0).getName());
 			ud.deleteUser(connection, 1);
+			*/
+			}
 		}
 	}
 
+	
+	public static User createUser(Scanner input) {
+		System.out.println("Enter the ID");
+		int id = input.nextInt();
+		input.nextLine();
+		System.out.println("Enter the UserName");
+		String username = input.nextLine();
+		System.out.println("Enter the Email");
+		String email = input.nextLine();
+		System.out.println("Enter the location");
+		String location = input.nextLine();
+		
+		return new User(id, username, email, location);
+		
+	}
+	
+	public static void readAll(List<User> list) {
+		list.forEach(User -> System.out.println("ID: " + User.getId() + ", UserName: " + User.getName() + ", email: " + User.getEmail() + ", location: " + User.getCountry() ));		
+	}
+	
+	public static int getId(Scanner input) {
+		System.out.println("Enter the ID");
+		int id = input.nextInt();
+		return id;
+	}
+
+	
 	protected Connection getConnection() {
 		Connection connection = null;
 		try {
@@ -176,6 +247,24 @@ public class UserDao {
 				}
 			}
 		}
+	}
+	
+	private static boolean menuOperator(Scanner input, boolean go, String message) {
+		// loops operation menu
+		System.out.println(message);
+		boolean gogo = true;
+		while (gogo) {
+			String repeat = input.nextLine();
+			if (repeat.toUpperCase().equals("Y")) {
+				gogo = false;
+			} else if (repeat.toUpperCase().equals("N")) {
+				go = false;
+				gogo = false;
+			} else {
+				System.out.println("invalid input, try again. input Y or N: ");
+			}
+		}
+		return go;
 	}
 
 }
